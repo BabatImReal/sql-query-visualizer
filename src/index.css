@@ -88,3 +88,9 @@
     color: hsl(var(--foreground));
   }
 }
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -100;
+  }
+}

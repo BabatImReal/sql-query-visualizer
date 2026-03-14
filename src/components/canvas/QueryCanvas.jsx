@@ -4,7 +4,15 @@ import { Button } from '@/components/ui/button';
 import TableNode from './TableNode';
 import JoinConnector from './JoinConnector';
 
-export default function QueryCanvas({ tables, joins, isLoading, onJoinClick }) {
+export default function QueryCanvas({
+  tables,
+  joins,
+  isLoading,
+  onJoinClick,
+  showGrid = true,
+  animatedConnections = true,
+  layoutDirection = 'horizontal',
+}) {
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
@@ -16,7 +24,14 @@ export default function QueryCanvas({ tables, joins, isLoading, onJoinClick }) {
   useEffect(() => {
     if (!tables || tables.length === 0) return;
     const positions = {};
-    const cols = Math.ceil(Math.sqrt(tables.length));
+    let cols;
+    if (layoutDirection === 'horizontal') {
+      cols = tables.length;
+    } else if (layoutDirection === 'vertical') {
+      cols = 1;
+    } else {
+      cols = Math.ceil(Math.sqrt(tables.length));
+    }
     const spacingX = 280;
     const spacingY = 240;
     tables.forEach((table, i) => {
@@ -30,7 +45,7 @@ export default function QueryCanvas({ tables, joins, isLoading, onJoinClick }) {
     setNodePositions(positions);
     setPan({ x: 0, y: 0 });
     setZoom(1);
-  }, [tables]);
+  }, [tables, layoutDirection]);
 
   const updateNodePosition = useCallback((name, pos) => {
     setNodePositions(prev => ({ ...prev, [name]: pos }));
@@ -114,14 +129,16 @@ export default function QueryCanvas({ tables, joins, isLoading, onJoinClick }) {
         onMouseLeave={handleMouseUp}
       >
         {/* Grid background */}
-        <svg className="absolute inset-0 w-full h-full" style={{ opacity: 0.3 }}>
-          <defs>
-            <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#21262d" strokeWidth="0.5" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" />
-        </svg>
+        {showGrid && (
+          <svg className="absolute inset-0 w-full h-full" style={{ opacity: 0.3 }}>
+            <defs>
+              <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#21262d" strokeWidth="0.5" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+          </svg>
+        )}
 
         <div
           className="absolute"
@@ -138,6 +155,7 @@ export default function QueryCanvas({ tables, joins, isLoading, onJoinClick }) {
                 join={join}
                 fromPos={nodePositions[join.from]}
                 toPos={nodePositions[join.to]}
+                animated={animatedConnections}
                 onClick={onJoinClick}
               />
             ))}

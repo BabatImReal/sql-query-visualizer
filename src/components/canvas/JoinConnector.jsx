@@ -9,7 +9,7 @@ const JOIN_COLORS = {
   'JOIN': '#3b82f6',
 };
 
-export default function JoinConnector({ join, fromPos, toPos, onClick }) {
+export default function JoinConnector({ join, fromPos, toPos, onClick, animated = true }) {
   if (!fromPos || !toPos) return null;
 
   const nodeWidth = 200;
@@ -39,7 +39,7 @@ export default function JoinConnector({ join, fromPos, toPos, onClick }) {
         strokeWidth="1.5"
         strokeDasharray={join.type === 'LEFT JOIN' || join.type === 'RIGHT JOIN' ? '4,4' : 'none'}
         opacity={0.6}
-        className="hover:opacity-100 transition-opacity"
+        className={`hover:opacity-100 transition-opacity ${animated ? 'animate-[dash_4s_linear_infinite]' : ''}`}
       />
       {/* Invisible wider path for easier clicking */}
       <path

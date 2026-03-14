@@ -16,6 +16,7 @@ import KeyboardShortcuts from '@/components/help/KeyboardShortcuts';
 import ShareQuery from '@/components/share/ShareSchema';
 import SchemaExplorer from '@/components/schema/SchemaExplorer';
 import html2canvas from 'html2canvas';
+import { useSettings } from '@/lib/SettingsContext';
 
 export default function Workspace() {
   console.log('Workplace component rendering');
@@ -51,6 +52,7 @@ export default function Workspace() {
   const [schemaOpen, setSchemaOpen] = useState(false);
   const [rightPanel, setRightPanel] = useState('explanation'); // 'explanation' | 'stats'
   const { addToHistory } = useQueryHistory();
+  const { settings } = useSettings();
 
   const handleVisualize = useCallback(async (sql) => {
     if (!sql.trim()) return;
@@ -396,12 +398,24 @@ Complexity assessment:
             initialSQL={sqlFromURL || undefined}
             currentSQL={currentSQL}
             onSQLChange={setCurrentSQL}
+            fontSize={settings.fontSize}
+            showLineNumbers={settings.lineNumbers}
+            wordWrap={settings.wordWrap}
+            autoVisualizeOnPaste={settings.autoVisualizeOnPaste}
           />
         </div>
 
         {/* Center Panel - Canvas */}
         <div className="flex-1" data-canvas-export>
-          <QueryCanvas tables={tables} joins={joins} isLoading={isVisualizing} onJoinClick={handleJoinClick} />
+          <QueryCanvas
+            tables={tables}
+            joins={joins}
+            isLoading={isVisualizing}
+            onJoinClick={handleJoinClick}
+            showGrid={settings.showGrid}
+            animatedConnections={settings.animatedConnections}
+            layoutDirection={settings.layoutDirection}
+          />
         </div>
 
         {/* Right Panel - Tabs */}
@@ -430,7 +444,11 @@ Complexity assessment:
           </div>
           <div className="flex-1 overflow-hidden">
             {rightPanel === 'explanation' ? (
-              <QueryExplanation explanation={explanation} isLoading={isExplaining} />
+              <QueryExplanation
+                explanation={explanation}
+                isLoading={isExplaining}
+                showOptimizationTips={settings.includeOptimizationTips}
+              />
             ) : (
               <QueryStats stats={stats} />
             )}

@@ -7,7 +7,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
 import AppLayout from '@/components/layout/AppLayout';
-import Workplace from '@/pages/Workplace';
+import Workspace from '@/pages/Workspace';
 import SavedQueries from '@/pages/SavedQueries';
 import Documentation from '@/pages/Documentation';
 import Settings from '@/pages/Settings';
@@ -34,12 +34,11 @@ const AuthenticatedApp = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/Workplace" replace />} />
-      <Route path="/Workspace" element={<Navigate to="/Workplace" replace />} />
-      <Route path="/workspace" element={<Navigate to="/Workplace" replace />} />
-      <Route path="/workplace" element={<Navigate to="/Workplace" replace />} />
+      <Route path="/" element={<Navigate to="/Workspace" replace />} />
+      <Route path="/workplace" element={<Navigate to="/Workspace" replace />} />
+      <Route path="/Workplace" element={<Navigate to="/Workspace" replace />} />
       <Route element={<AppLayout />}>
-        <Route path="/Workplace" element={<Workplace />} />
+        <Route path="/Workspace" element={<Workspace />} />
         <Route path="/SavedQueries" element={<SavedQueries />} />
         <Route path="/Documentation" element={<Documentation />} />
         <Route path="/Settings" element={<Settings />} />
@@ -49,16 +48,22 @@ const AuthenticatedApp = () => {
   );
 };
 
+import { ThemeProvider } from '@/components/theme/ThemeToggle';
+
+import { SettingsProvider } from '@/lib/SettingsContext';
+
 function App() {
   return (
-    <AuthProvider>
-      <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <AuthenticatedApp />
-        </Router>
-        <Toaster />
-      </QueryClientProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <SettingsProvider>
+        <AuthProvider>
+          <QueryClientProvider client={queryClientInstance}>
+            <AuthenticatedApp />
+            <Toaster />
+          </QueryClientProvider>
+        </AuthProvider>
+      </SettingsProvider>
+    </ThemeProvider>
   )
 }
 

@@ -14,7 +14,7 @@ function Section({ icon: Icon, title, color, children }) {
   );
 }
 
-export default function QueryExplanation({ explanation, isLoading }) {
+export default function QueryExplanation({ explanation, isLoading, showOptimizationTips = true }) {
   if (isLoading) {
     return (
       <div className="h-full flex flex-col">
@@ -108,7 +108,7 @@ export default function QueryExplanation({ explanation, isLoading }) {
           )}
 
           {/* Optimization */}
-          {explanation.optimizations && explanation.optimizations.length > 0 && (
+          {showOptimizationTips && explanation.optimizations && explanation.optimizations.length > 0 && (
             <Section icon={Lightbulb} title="Optimization Tips" color="#eab308">
               {explanation.optimizations.map((opt, i) => (
                 <div key={i} className="text-[11px] bg-amber-900/10 border border-amber-900/20 rounded p-2">
