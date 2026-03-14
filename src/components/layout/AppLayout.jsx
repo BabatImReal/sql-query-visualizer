@@ -4,6 +4,7 @@ import { Database, Save, BookOpen, Settings, Zap, Keyboard } from 'lucide-react'
 import { Button } from '@/components/ui/button';
 import ThemeToggle from '@/components/theme/ThemeToggle';
 import KeyboardShortcuts from '@/components/help/KeyboardShortcuts';
+import { useAuth } from '@/lib/AuthContext';
 
 const navItems = [
   { label: 'Workspace', path: '/Workspace', icon: Database },
@@ -16,6 +17,7 @@ export default function AppLayout() {
   console.log('AppLayout component rendering');
   const location = useLocation();
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const { user, logout } = useAuth();
 
   return (
     <>
@@ -51,6 +53,19 @@ export default function AppLayout() {
           </nav>
         </div>
         <div className="flex items-center gap-2">
+          {user && (
+            <span className="text-[11px] text-gray-400 font-mono mr-1">
+              {user.email}
+            </span>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={logout}
+            className="h-7 px-2 text-[11px] text-gray-400 hover:text-white hover:bg-[#21262d]"
+          >
+            Sign out
+          </Button>
           <Button
             variant="ghost"
             size="icon"

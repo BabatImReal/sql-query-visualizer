@@ -70,20 +70,10 @@ function highlightSQL(code) {
   return result;
 }
 
-export default function SQLEditor({
-  onVisualize,
-  initialSQL,
-  currentSQL,
-  onSQLChange,
-  fontSize = '12',
-  showLineNumbers = true,
-  wordWrap = false,
-  autoVisualizeOnPaste = false,
-}) {
+export default function SQLEditor({ onVisualize, initialSQL, currentSQL, onSQLChange }) {
   const [sql, setSQL] = useState(initialSQL || SAMPLE_QUERY);
   const textareaRef = useRef(null);
   const highlightRef = useRef(null);
-  const numericFontSize = Number(fontSize) || 12;
 
   // Sync with external SQL changes
   useEffect(() => {
@@ -98,28 +88,6 @@ export default function SQLEditor({
       highlightRef.current.scrollLeft = textareaRef.current.scrollLeft;
     }
   }, []);
-
-  useEffect(() => {
-    if (!autoVisualizeOnPaste || !textareaRef.current) return;
-
-    const handlePaste = (e) => {
-      const pasted = e.clipboardData.getData('text');
-      if (!pasted) return;
-      const textarea = textareaRef.current;
-      const before = textarea.value.slice(0, textarea.selectionStart);
-      const after = textarea.value.slice(textarea.selectionEnd);
-      const newSQL = before + pasted + after;
-      e.preventDefault();
-      handleSQLChange(newSQL);
-      if (onVisualize) {
-        onVisualize(newSQL);
-      }
-    };
-
-    const node = textareaRef.current;
-    node.addEventListener('paste', handlePaste);
-    return () => node.removeEventListener('paste', handlePaste);
-  }, [autoVisualizeOnPaste, onVisualize]);
 
   useEffect(() => {
     if (initialSQL !== undefined && initialSQL !== null) {
@@ -202,30 +170,25 @@ export default function SQLEditor({
 
       <div className="flex-1 relative overflow-hidden">
         {/* Line numbers */}
-        {showLineNumbers && (
-          <div className="absolute left-0 top-0 bottom-0 w-10 bg-[#0d1117] border-r border-[#21262d] overflow-hidden z-10">
-            <div
-              className="pt-3 pb-3"
-              style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace' }}
-            >
-              {Array.from({ length: lineCount }, (_, i) => (
-                <div key={i} className="text-[11px] text-gray-600 text-right pr-2 leading-[20px]">
-                  {i + 1}
-                </div>
-              ))}
-            </div>
+        <div className="absolute left-0 top-0 bottom-0 w-10 bg-[#0d1117] border-r border-[#21262d] overflow-hidden z-10">
+          <div className="pt-3 pb-3" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace' }}>
+            {Array.from({ length: lineCount }, (_, i) => (
+              <div key={i} className="text-[11px] text-gray-600 text-right pr-2 leading-[20px]">
+                {i + 1}
+              </div>
+            ))}
           </div>
-        )}
+        </div>
 
         {/* Highlight layer */}
         <pre
           ref={highlightRef}
-          className={`absolute inset-0 ${showLineNumbers ? 'pl-12' : 'pl-3'} pr-3 pt-3 pb-3 overflow-auto pointer-events-none`}
+          className="absolute inset-0 pl-12 pr-3 pt-3 pb-3 overflow-auto pointer-events-none"
           style={{
             fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
-            fontSize: `${numericFontSize}px`,
+            fontSize: '12px',
             lineHeight: '20px',
-            whiteSpace: wordWrap ? 'pre-wrap' : 'pre',
+            whiteSpace: 'pre',
             margin: 0,
             color: '#e6edf3',
           }}
@@ -239,12 +202,12 @@ export default function SQLEditor({
           onChange={(e) => handleSQLChange(e.target.value)}
           onScroll={syncScroll}
           spellCheck={false}
-          className={`absolute inset-0 ${showLineNumbers ? 'pl-12' : 'pl-3'} pr-3 pt-3 pb-3 bg-transparent text-transparent caret-blue-400 resize-none outline-none overflow-auto`}
+          className="absolute inset-0 pl-12 pr-3 pt-3 pb-3 bg-transparent text-transparent caret-blue-400 resize-none outline-none overflow-auto"
           style={{
             fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
-            fontSize: `${numericFontSize}px`,
+            fontSize: '12px',
             lineHeight: '20px',
-            whiteSpace: wordWrap ? 'pre-wrap' : 'pre',
+            whiteSpace: 'pre',
           }}
         />
       </div>
