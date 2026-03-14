@@ -1,0 +1,64 @@
+{
+  "name": "SavedQuery",
+  "type": "object",
+  "version": "1.0.0",
+  "description": "Schema for saved SQL queries",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier"
+    },
+    "title": {
+      "type": "string",
+      "description": "Name of the saved query"
+    },
+    "sql": {
+      "type": "string",
+      "description": "The SQL query text"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional description of the query"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags for categorization"
+    },
+    "is_favorite": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the query is favorited"
+    },
+    "created_at": {
+      "type": "string",
+      "description": "ISO timestamp of creation"
+    },
+    "updated_at": {
+      "type": "string",
+      "description": "ISO timestamp of last update"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "User who created the query"
+    }
+  },
+  "required": [
+    "title",
+    "sql"
+  ],
+  "rls": {
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  },
+  "queries": []
+}

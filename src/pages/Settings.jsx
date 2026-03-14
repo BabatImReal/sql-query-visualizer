@@ -1,0 +1,132 @@
+import React from 'react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Settings as SettingsIcon, Monitor, Palette, Code2 } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+export default function Settings() {
+  return (
+    <div className="h-full bg-[#0d1117]">
+      <ScrollArea className="h-full">
+        <div className="max-w-2xl mx-auto px-6 py-8">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-10 h-10 rounded-xl bg-gray-600/10 border border-gray-600/20 flex items-center justify-center">
+              <SettingsIcon className="w-5 h-5 text-gray-400" />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold text-white">Settings</h1>
+              <p className="text-xs text-gray-500">Configure your preferences</p>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            {/* Editor Settings */}
+            <div className="rounded-lg bg-[#161b22] border border-[#21262d] overflow-hidden">
+              <div className="px-4 py-3 border-b border-[#21262d] flex items-center gap-2">
+                <Code2 className="w-4 h-4 text-blue-400" />
+                <h2 className="text-sm font-semibold text-white">Editor</h2>
+              </div>
+              <div className="p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-xs text-gray-300">Font Size</Label>
+                    <p className="text-[10px] text-gray-600 mt-0.5">Set the editor font size</p>
+                  </div>
+                  <Select defaultValue="12">
+                    <SelectTrigger className="w-24 h-8 bg-[#0d1117] border-[#21262d] text-white text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#161b22] border-[#21262d]">
+                      <SelectItem value="10" className="text-gray-300 text-xs">10px</SelectItem>
+                      <SelectItem value="12" className="text-gray-300 text-xs">12px</SelectItem>
+                      <SelectItem value="14" className="text-gray-300 text-xs">14px</SelectItem>
+                      <SelectItem value="16" className="text-gray-300 text-xs">16px</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-xs text-gray-300">Line Numbers</Label>
+                    <p className="text-[10px] text-gray-600 mt-0.5">Show line numbers in the editor</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-xs text-gray-300">Word Wrap</Label>
+                    <p className="text-[10px] text-gray-600 mt-0.5">Wrap long lines in the editor</p>
+                  </div>
+                  <Switch />
+                </div>
+              </div>
+            </div>
+
+            {/* Visualization Settings */}
+            <div className="rounded-lg bg-[#161b22] border border-[#21262d] overflow-hidden">
+              <div className="px-4 py-3 border-b border-[#21262d] flex items-center gap-2">
+                <Palette className="w-4 h-4 text-purple-400" />
+                <h2 className="text-sm font-semibold text-white">Visualization</h2>
+              </div>
+              <div className="p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-xs text-gray-300">Show Grid</Label>
+                    <p className="text-[10px] text-gray-600 mt-0.5">Display grid background on canvas</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-xs text-gray-300">Animated Connections</Label>
+                    <p className="text-[10px] text-gray-600 mt-0.5">Animate join connector lines</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-xs text-gray-300">Layout Direction</Label>
+                    <p className="text-[10px] text-gray-600 mt-0.5">Default arrangement of table nodes</p>
+                  </div>
+                  <Select defaultValue="horizontal">
+                    <SelectTrigger className="w-28 h-8 bg-[#0d1117] border-[#21262d] text-white text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#161b22] border-[#21262d]">
+                      <SelectItem value="horizontal" className="text-gray-300 text-xs">Horizontal</SelectItem>
+                      <SelectItem value="vertical" className="text-gray-300 text-xs">Vertical</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* General */}
+            <div className="rounded-lg bg-[#161b22] border border-[#21262d] overflow-hidden">
+              <div className="px-4 py-3 border-b border-[#21262d] flex items-center gap-2">
+                <Monitor className="w-4 h-4 text-green-400" />
+                <h2 className="text-sm font-semibold text-white">General</h2>
+              </div>
+              <div className="p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-xs text-gray-300">Auto-visualize on paste</Label>
+                    <p className="text-[10px] text-gray-600 mt-0.5">Automatically visualize when pasting SQL</p>
+                  </div>
+                  <Switch />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-xs text-gray-300">Include optimization tips</Label>
+                    <p className="text-[10px] text-gray-600 mt-0.5">Show query optimization suggestions</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ScrollArea>
+    </div>
+  );
+}
