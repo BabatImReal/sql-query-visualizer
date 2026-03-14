@@ -1,59 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-
-// Simple local-storage backed auth for demo/local mode only.
-// NOTE: Do NOT use this approach for production credentials.
-
-const USERS_KEY = 'sql_visualizer_users';
-const CURRENT_USER_KEY = 'sql_visualizer_current_user';
+import { supabase } from '@/lib/supabaseClient';
 
 const AuthContext = createContext();
-
-const loadUsers = () => {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = window.localStorage.getItem(USERS_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (e) {
-    console.error('Failed to load users from localStorage', e);
-    return [];
-  }
-};
-
-const saveUsers = (users) => {
-  if (typeof window === 'undefined') return;
-  try {
-    window.localStorage.setItem(USERS_KEY, JSON.stringify(users));
-  } catch (e) {
-    console.error('Failed to save users to localStorage', e);
-  }
-};
-
-const loadCurrentUser = () => {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = window.localStorage.getItem(CURRENT_USER_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch (e) {
-    console.error('Failed to load current user', e);
-    return null;
-  }
-};
-
-const saveCurrentUser = (user) => {
-  if (typeof window === 'undefined') return;
-  try {
-    if (user) {
-      window.localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
-    } else {
-      window.localStorage.removeItem(CURRENT_USER_KEY);
-    }
-  } catch (e) {
-    console.error('Failed to save current user', e);
-  }
-};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -61,67 +9,108 @@ export const AuthProvider = ({ children }) => {
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const [isLoadingPublicSettings] = useState(false);
   const [authError, setAuthError] = useState(null);
-  const [appPublicSettings] = useState({ mode: 'local' });
+  const [appPublicSettings] = useState({ mode: 'supabase' });
 
   useEffect(() => {
-    const existingUser = loadCurrentUser();
-    if (existingUser) {
-      setUser(existingUser);
-      setIsAuthenticated(true);
-    }
-    setIsLoadingAuth(false);
-  }, []);
-
-  const register = ({ email, password }) => {
-    if (!email || !password) {
-      throw new Error('Email and password are required');
-    }
-
-    const users = loadUsers();
-    const existing = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
-    if (existing) {
-      throw new Error('An account with this email already exists');
-    }
-
-    const newUser = {
-      id: Date.now(),
-      email,
-      password, // For demo only; do NOT store plain-text passwords in real apps.
-      createdAt: new Date().toISOString(),
+    const initAuth = async () => {
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (error) {
+          console.error('Failed to get current user from Supabase', error);
+          setAuthError({ type: 'auth_init_error', message: error.message });
+        } else if (data?.user) {
+          setUser({ id: data.user.id, email: data.user.email });
+          setIsAuthenticated(true);
+        }
+      } catch (err) {
+        console.error('Unexpected error while initializing auth', err);
+        setAuthError({ type: 'auth_init_error', message: err.message });
+      } finally {
+        setIsLoadingAuth(false);
+      }
     };
 
-    const updated = [...users, newUser];
-    saveUsers(updated);
+    initAuth();
 
-    // Auto-login after registration
-    setUser({ id: newUser.id, email: newUser.email });
-    saveCurrentUser({ id: newUser.id, email: newUser.email });
-    setIsAuthenticated(true);
-    setAuthError(null);
-  };
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser({ id: session.user.id, email: session.user.email });
+        setIsAuthenticated(true);
+        setAuthError(null);
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
+      }
+    });
 
-  const login = ({ email, password }) => {
+    return () => {
+      subscription?.subscription?.unsubscribe?.();
+    };
+  }, []);
+
+  const register = async ({ email, password }) => {
     if (!email || !password) {
       throw new Error('Email and password are required');
     }
 
-    const users = loadUsers();
-    const existing = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
-    if (!existing || existing.password !== password) {
-      throw new Error('Invalid email or password');
+    const { error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth` : undefined,
+      },
+    });
+
+    if (signUpError) {
+      throw new Error(signUpError.message || 'Failed to create account');
     }
 
-    const loggedInUser = { id: existing.id, email: existing.email };
-    setUser(loggedInUser);
-    saveCurrentUser(loggedInUser);
+    const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (loginError) {
+      throw new Error(loginError.message || 'Account created, but login failed. Please verify your email and try signing in.');
+    }
+
+    if (!loginData?.user) {
+      throw new Error('Account created, but could not complete login. Please try signing in.');
+    }
+
+    setUser({ id: loginData.user.id, email: loginData.user.email });
     setIsAuthenticated(true);
     setAuthError(null);
   };
 
-  const logout = () => {
+  const login = async ({ email, password }) => {
+    if (!email || !password) {
+      throw new Error('Email and password are required');
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      throw new Error(error.message || 'Invalid email or password');
+    }
+
+    if (!data?.user) {
+      throw new Error('Login failed. Please try again.');
+    }
+
+    setUser({ id: data.user.id, email: data.user.email });
+    setIsAuthenticated(true);
+    setAuthError(null);
+  };
+
+  const logout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Failed to sign out from Supabase', error);
+      return;
+    }
     setUser(null);
     setIsAuthenticated(false);
-    saveCurrentUser(null);
   };
 
   return (

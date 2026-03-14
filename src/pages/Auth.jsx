@@ -30,11 +30,11 @@ export default function Auth() {
     setIsSubmitting(true);
     try {
       if (mode === 'login') {
-        login({ email, password });
+        await login({ email, password });
         toast.success('Logged in successfully');
       } else {
-        register({ email, password });
-        toast.success('Account created and logged in');
+        await register({ email, password });
+        toast.success('Account created successfully');
       }
       navigate('/Workspace', { replace: true });
     } catch (err) {
@@ -139,8 +139,8 @@ export default function Auth() {
             </Button>
 
             <p className="text-[11px] text-slate-500 mt-3">
-              This authentication is stored only in your browser for demo purposes.
-              Do not use real or sensitive passwords here.
+              Accounts are created and stored securely using Supabase Auth.
+              You can log in from any device using the same email and password.
             </p>
           </form>
         </Card>
