@@ -1,16 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Settings as SettingsIcon, Monitor, Palette, Code2 } from 'lucide-react';
+import { Settings as SettingsIcon, Monitor, Palette, Code2, Lock } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { useSettings } from '@/lib/SettingsContext';
+import { useAuth } from '@/lib/AuthContext';
+import { supabase } from '@/lib/supabaseClient';
 
 export default function Settings() {
   const { settings, saveSettings } = useSettings();
+  const { user } = useAuth();
   const [localSettings, setLocalSettings] = useState(settings);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
   useEffect(() => {
     setLocalSettings(settings);
@@ -23,6 +31,52 @@ export default function Settings() {
   const handleSave = () => {
     saveSettings(localSettings);
     toast.success('Settings saved');
+  };
+
+  const handleChangePassword = async () => {
+    if (!user?.email) {
+      toast.error('You need to be logged in to change your password.');
+      return;
+    }
+
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+      toast.error('Please fill in all password fields.');
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      toast.error('New passwords do not match.');
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword,
+      });
+
+      if (signInError) {
+        throw new Error('Current password is incorrect.');
+      }
+
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (updateError) {
+        throw new Error(updateError.message || 'Failed to update password.');
+      }
+
+      toast.success('Password updated successfully');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+    } catch (error) {
+      toast.error(error.message || 'Could not update password.');
+    } finally {
+      setIsUpdatingPassword(false);
+    }
   };
 
   return (
@@ -164,6 +218,65 @@ export default function Settings() {
                     checked={localSettings.includeOptimizationTips}
                     onCheckedChange={(value) => update('includeOptimizationTips', value)}
                   />
+                </div>
+              </div>
+            </div>
+
+            {/* Account & Security */}
+            <div className="rounded-lg bg-[#161b22] border border-[#21262d] overflow-hidden">
+              <div className="px-4 py-3 border-b border-[#21262d] flex items-center gap-2">
+                <Lock className="w-4 h-4 text-red-400" />
+                <h2 className="text-sm font-semibold text-white">Account security</h2>
+              </div>
+              <div className="p-4 space-y-4">
+                <div>
+                  <Label className="text-xs text-gray-300">Signed in as</Label>
+                  <p className="text-[11px] text-gray-500 mt-1 font-mono break-all">
+                    {user?.email || 'Not signed in'}
+                  </p>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-gray-300">Current password</Label>
+                    <Input
+                      type="password"
+                      className="h-8 bg-[#0d1117] border-[#21262d] text-xs text-gray-100 placeholder:text-gray-500"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-gray-300">New password</Label>
+                    <Input
+                      type="password"
+                      className="h-8 bg-[#0d1117] border-[#21262d] text-xs text-gray-100 placeholder:text-gray-500"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-gray-300">Confirm new password</Label>
+                    <Input
+                      type="password"
+                      className="h-8 bg-[#0d1117] border-[#21262d] text-xs text-gray-100 placeholder:text-gray-500"
+                      value={confirmNewPassword}
+                      onChange={(e) => setConfirmNewPassword(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="text-xs border-red-500/60 text-red-200 hover:bg-red-500/10"
+                    disabled={isUpdatingPassword}
+                    onClick={handleChangePassword}
+                  >
+                    {isUpdatingPassword ? 'Updating password...' : 'Update password'}
+                  </Button>
                 </div>
               </div>
             </div>
